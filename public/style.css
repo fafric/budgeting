@@ -1,0 +1,21 @@
+body {
+  font-size: 0.98rem;
+}
+
+.card {
+  border: 0;
+  border-radius: 14px;
+}
+
+.table td,
+.table th {
+  vertical-align: middle;
+}
+
+.progress {
+  border-radius: 999px;
+}
+
+.navbar .btn {
+  border-radius: 999px;
+}

@@ -1,0 +1,70 @@
+<%- include('partials/header', { title: 'Savings Goals' }) %>
+
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h1 class="h4 mb-3">Add savings goal</h1>
+        <% if (error) { %>
+          <div class="alert alert-danger"><%= error %></div>
+        <% } %>
+        <form method="POST" action="/goals" class="d-grid gap-3">
+          <input type="text" name="name" class="form-control" placeholder="Goal name" required>
+          <input type="number" step="0.01" min="0.01" name="target_amount" class="form-control" placeholder="Target amount" required>
+          <input type="number" step="0.01" min="0" name="current_amount" class="form-control" placeholder="Current saved amount" value="0">
+          <input type="date" name="target_date" class="form-control">
+          <button type="submit" class="btn btn-dark">Save goal</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="row g-3">
+      <% if (!items.length) { %>
+        <div class="col-12">
+          <div class="card shadow-sm">
+            <div class="card-body text-muted">No savings goals yet.</div>
+          </div>
+        </div>
+      <% } %>
+
+      <% items.forEach(item => { %>
+        <% const percent = Math.min((Number(item.current_amount) / Number(item.target_amount)) * 100, 100); %>
+        <div class="col-12">
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                  <h2 class="h5 mb-1"><%= item.name %></h2>
+                  <div class="text-muted">Saved <%= formatMoney(item.current_amount) %> of <%= formatMoney(item.target_amount) %></div>
+                  <div class="small text-muted">Target date: <%= item.target_date || 'Not set' %></div>
+                </div>
+                <form method="POST" action="/goals/<%= item.id %>/delete">
+                  <button class="btn btn-sm btn-outline-danger">Delete</button>
+                </form>
+              </div>
+
+              <div class="progress mb-3" style="height: 20px;">
+                <div class="progress-bar" style="width: <%= percent %>%;">
+                  <%= percent.toFixed(1) %>%
+                </div>
+              </div>
+
+              <form method="POST" action="/goals/<%= item.id %>/add" class="row g-2">
+                <div class="col-md-8">
+                  <input type="number" step="0.01" min="0.01" name="amount" class="form-control" placeholder="Add contribution amount" required>
+                </div>
+                <div class="col-md-4">
+                  <button class="btn btn-dark w-100">Add contribution</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

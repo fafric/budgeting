@@ -1,0 +1,23 @@
+<%- include('partials/header', { title: 'Register' }) %>
+
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h3 mb-3">Register</h1>
+        <% if (error) { %>
+          <div class="alert alert-danger"><%= error %></div>
+        <% } %>
+        <form method="POST" action="/register" class="d-grid gap-3">
+          <input type="text" name="name" class="form-control" placeholder="Full name" required>
+          <input type="email" name="email" class="form-control" placeholder="Email" required>
+          <input type="password" name="password" class="form-control" placeholder="Password (min 8 characters)" required>
+          <button type="submit" class="btn btn-dark">Create account</button>
+        </form>
+        <p class="mt-3 mb-0">Already registered? <a href="/login">Login here</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>
