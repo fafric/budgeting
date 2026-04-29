@@ -1,9 +1,8 @@
 require('dotenv').config();
-const fs = require('node:fs');
 const path = require('node:path');
 const express = require('express');
 const session = require('express-session');
-const FileStore = require('session-file-store')(session);
+const MongoStore = require('connect-mongo');
 const bcrypt = require('bcryptjs');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -11,19 +10,26 @@ const { MongoClient, ObjectId } = require('mongodb');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const sessionDir = process.env.SESSION_DIR || path.join(__dirname, 'data', 'sessions');
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/budgeting';
 
-fs.mkdirSync(sessionDir, { recursive: true });
+const client = new MongoClient(MONGODB_URI);
+const clientPromise = client.connect();
+
+const defaultDbName = (() => {
+  try {
+    const parsed = new URL(MONGODB_URI);
+    return parsed.pathname && parsed.pathname !== '/' ? parsed.pathname.slice(1) : 'budgeting';
+  } catch {
+    return 'budgeting';
+  }
+})();
 
 let db;
-let client;
 
 async function connectToMongoDB() {
   try {
-    client = new MongoClient(MONGODB_URI);
-    await client.connect();
-    db = client.db();
+    await clientPromise;
+    db = client.db(defaultDbName);
     console.log('Connected to MongoDB');
   } catch (error) {
     console.error('Failed to connect to MongoDB:', error);
@@ -39,11 +45,16 @@ app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+const sessionStore = MongoStore.create({
+  clientPromise,
+  dbName: defaultDbName,
+  collectionName: 'sessions',
+  stringify: false,
+  ttl: 14 * 24 * 60 * 60
+});
+
 app.use(session({
-  store: new FileStore({
-    path: sessionDir,
-    retries: 0
-  }),
+  store: sessionStore,
   secret: process.env.SESSION_SECRET || 'change-this-secret-now',
   resave: false,
   saveUninitialized: false,
